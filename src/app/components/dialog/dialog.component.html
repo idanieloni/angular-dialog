@@ -1,0 +1,20 @@
+<div  #dialogCt class="dialog-ct" [style]="stylingOptions" >
+    <div class="dialog-header">
+        <span class="dialog-title" *ngIf="title">{{title}}</span>
+        <span class="dialog-close" *ngIf="canClose" (click)="cancelDialog()">
+            <svg class="svg-icon" viewBox="0 0 24 24">
+                <path d="M6.34314575 6.34314575L17.6568542 17.6568542M6.34314575 17.6568542L17.6568542 6.34314575"></path>
+            </svg>
+        </span>
+    </div>
+    <div class="dialog-message">
+        <span>{{message | async}}</span>
+        <span *ngIf="timerMessage">{{timerMessage | async}}</span>
+    </div>
+    <div  class="dialog-buttons-ct" *ngIf="buttonOptions">
+        @for (bttn of buttonOptions; track bttn) {
+        <button #dialogButton class="dialog-button" [style]="buttonStylingOptions" (click)="emitResult($event)">{{bttn | titlecase}} </button>
+        }
+    </div>
+
+</div>
