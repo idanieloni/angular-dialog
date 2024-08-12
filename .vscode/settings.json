@@ -8,13 +8,6 @@
     "karmaTestExplorer.reloadOnKarmaConfigChange": true,
     "karmaTestExplorer.logLevel": "debug",
     "karmaTestExplorer.karmaReporterLogLevel": "debug",
-    "karmaTestExplorer.customLauncher": {
-      "base": "Firefox",
-      "flags": [
-        "--headless",
-        "--disable-gpu",
-        "--disable-dev-shm-usage",
-        "--remote-debugging-port=9222"
-      ]
-    }
+    "karmaTestExplorer.browser": "ChromeHeadless",
+        "karmaTestExplorer.autoWatchBatchDelay": 1
 }

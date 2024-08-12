@@ -1,4 +1,4 @@
-import { EnvironmentInjector, ViewContainerRef, ViewRef } from '@angular/core';
+import { ElementRef, EnvironmentInjector, ViewContainerRef, ViewRef } from '@angular/core';
 import { Mock } from 'ts-mocks';
 
 export class MockTokens<T> extends Mock<T> {
@@ -15,14 +15,6 @@ export class MockTokens<T> extends Mock<T> {
         return mock;
     }
 
-    static mockViewRef(): MockTokens<ViewRef> {
-        const mock = new MockTokens<ViewRef>({
-            destroy: () => null
-        });
-        mock.provider = { provide: ViewRef, useValue: mock.Object }
-        return mock;
-    }
-
     static mockEnvironmentInjector(): MockTokens<EnvironmentInjector> {
         const mock = new MockTokens<EnvironmentInjector>({
             get: () => null,
@@ -30,5 +22,6 @@ export class MockTokens<T> extends Mock<T> {
         mock.provider = { provide: EnvironmentInjector, useValue: mock.Object }
         return mock;
     }
+
 }
   

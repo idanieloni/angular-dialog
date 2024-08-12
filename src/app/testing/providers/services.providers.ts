@@ -5,14 +5,10 @@ import { TAcknowledgeDialog, TChoiceDialog, TConfirmDialog } from "../../types/c
 
 export class MockServices<T> extends Mock<T> {
     provider: { provide: {}, useValue: T };
-
+    
     static mockDialogService(): MockServices<DialogService> {
-        const mock = new MockServices<DialogService>({
-            openDialog: (dialogOptions: any) => ({
-                onOpen: () => of(),
-                onClose: () => of(),
-                onCancel: () => of()
-            }),
+        const mock = new MockServices<DialogService>(
+            {
             openConfirmDialog: (dialogOptions: TConfirmDialog) => ({
                 onOpen: () => of(),
                 onConfirm: () => of(''),

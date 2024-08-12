@@ -7,9 +7,9 @@
             </svg>
         </span>
     </div>
-    <div class="dialog-message">
-        <span>{{message | async}}</span>
-        <span *ngIf="timerMessage">{{timerMessage | async}}</span>
+    <div class="dialog-message-ct">
+        <span class="dialog-message">{{message | async}}</span>
+        <span class="dialog-timer-message" *ngIf="timer">This alert will close in {{timer | async}}s</span>
     </div>
     <div  class="dialog-buttons-ct" *ngIf="buttonOptions">
         @for (bttn of buttonOptions; track bttn) {

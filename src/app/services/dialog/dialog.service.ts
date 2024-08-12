@@ -1,4 +1,4 @@
-import { createComponent, createEnvironmentInjector, EnvironmentInjector, Injectable, Injector, runInInjectionContext, ViewContainerRef } from '@angular/core';
+import { createComponent, EnvironmentInjector, Injectable, ViewContainerRef } from '@angular/core';
 import { TAcknowledgeDialog, TAlertDialog, TChoiceDialog, TConfirmDialog, TDialog } from '../../types/common.types';
 import { DialogComponent } from '../../components/dialog/dialog.component';
 
@@ -50,9 +50,7 @@ export class DialogService {
     }
   } 
 
-  openAlertDialog(dialogOptions: TAlertDialog) {
-    console.log('openAlertDialog');
-    
+  openAlertDialog(dialogOptions: TAlertDialog) {    
     const dialog = this.openDialog(({...dialogOptions, canClose: true}), dialogOptions.closeAfter, dialogOptions.showTimer);    
     return {
       onOpen: () => dialog.onOpen(),

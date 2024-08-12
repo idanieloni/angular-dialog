@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, EventEmitter, QueryList, ViewChild, ViewChildren, ViewRef } from '@angular/core';
 import { IDialog } from '../../interfaces';
 import { TDialog } from '../../types/common.types';
-import { map, Observable, of, Subject } from 'rxjs';
+import { from, map, Observable, of, Subject } from 'rxjs';
 import * as CSS from 'csstype';
 
 /**
@@ -37,13 +37,13 @@ export class DialogComponent implements IDialog, AfterViewInit {
     backgroundColor: 'white',
     border: '1px solid black',
   }
-  private _hostView: ViewRef;
+  hostView: ViewRef;
 
   private result = new EventEmitter<string>();
   private opened = new EventEmitter<void>();
   private cancelled = new EventEmitter<void>();
 
-  protected timerMessage: Observable<string>;
+  protected timer: Observable<number>;
   
   @ViewChildren('dialogButton') dialogButtons: QueryList<ElementRef>;
   @ViewChild('dialogCt') dialogCt: ElementRef<HTMLDivElement>;
@@ -99,9 +99,8 @@ export class DialogComponent implements IDialog, AfterViewInit {
       this.cancelDialog();
       return;
     }
-
-    this.result.emit(result);
-    this.closeDialog();
+    this.closeDialog().then(() => this.result.emit(result))
+    
   }
 
   /**
@@ -109,13 +108,12 @@ export class DialogComponent implements IDialog, AfterViewInit {
    * @memberof DialogComponent
    * */
   protected cancelDialog(): void {
-    this.cancelled.emit();
-    this.closeDialog();
+    from(this.closeDialog().then(() => this.cancelled.emit()))
   }
 
-  private closeDialog(): void {
-    this.animateDialog('out').finished.then(() => {
-      this._hostView.destroy();
+  private closeDialog() {    
+    return this.animateDialog('out').finished.then(() => {
+      this.hostView.destroy();
     });
   }
 
@@ -130,17 +128,15 @@ export class DialogComponent implements IDialog, AfterViewInit {
   openDialog(config: TDialog, hostView: ViewRef, closeAfter?: number, showTimer?: boolean) {
     try{
       this.init(config);
-      this._hostView = hostView;
+      this.hostView = hostView;
       this.opened.emit();
 
       if (closeAfter) {
         if (showTimer) {
-          this.timerMessage = this.countdown(closeAfter).pipe(
-            map(count => `Dialog closing in ${count} seconds.`)
-          );
+          this.timer = this.countdown(closeAfter)
         }
         setTimeout(() => {
-          this.closeDialog();
+          this.closeDialog().then(() => this.cancelled.emit())
         }, closeAfter);
       }
 

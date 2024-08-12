@@ -40,3 +40,10 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+.vscode/settings.json
+.vscode/launch.json
+node_modules
+tsconfig.json
+package-lock.json
+angular.json
+package-lock.json

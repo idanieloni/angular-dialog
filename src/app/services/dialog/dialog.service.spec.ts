@@ -3,14 +3,13 @@ import { DialogService } from './dialog.service';
 import { mockDialogData } from '../../testing/mock-data';
 import { EnvironmentInjector, ViewContainerRef } from '@angular/core';
 import { MockTokens } from '../../testing/providers/injectibles.providers';
-import { MockServices } from '../../testing/providers/services.providers';
 
 describe('DialogService', () => {
   let dialogService: DialogService;
   let viewContainerRefMock: ViewContainerRef;
   let environmentInjectorMock: EnvironmentInjector;
 
-  beforeEach(() => {
+  beforeEach(async() => {
     viewContainerRefMock = MockTokens.mockViewContainerRef().Object;
     environmentInjectorMock = MockTokens.mockEnvironmentInjector().Object;
 
@@ -20,13 +19,12 @@ describe('DialogService', () => {
         { provide: EnvironmentInjector, useValue: environmentInjectorMock },
         { provide: ViewContainerRef, useValue: viewContainerRefMock },
       ],
-    });
+    }).compileComponents();
     
     dialogService = TestBed.inject(DialogService);
 
   });
 
-  describe('opening dialog', () => {
     it('should detach existing dialog if it already exists', () => {
       const dialogOptions = mockDialogData.mockConfirmDialogConfig;
       dialogService.openConfirmDialog(dialogOptions);
@@ -34,25 +32,6 @@ describe('DialogService', () => {
       expect(viewContainerRefMock.get).toHaveBeenCalled();
       expect(viewContainerRefMock.detach).toHaveBeenCalled()
      
-    });
-
-    it('should open a confirm dialog', () => {
-      const dialogOptions = mockDialogData.mockConfirmDialogConfig;
-      const dialog = dialogService.openConfirmDialog(dialogOptions);
-
-      expect(viewContainerRefMock.insert).toHaveBeenCalled();
-      expect(dialog.onOpen).toBeDefined();
-      expect(dialog.onConfirm).toBeDefined();
-      expect(dialog.onReject).toBeDefined();
-    });
-
-    it('should open a confirm dialog', () => {
-      const dialogOptions = mockDialogData.mockConfirmDialogConfig;
-      const dialog = dialogService.openConfirmDialog(dialogOptions);
-
-      expect(dialog.onOpen).toBeDefined();
-      expect(dialog.onConfirm).toBeDefined();
-      expect(dialog.onReject).toBeDefined();
     });
 
     it('should open a confirm dialog', () => {
@@ -80,5 +59,4 @@ describe('DialogService', () => {
         expect(dialog.onOpen).toBeDefined();
         expect(dialog.onClose).toBeDefined();
     });
-  });
 });
