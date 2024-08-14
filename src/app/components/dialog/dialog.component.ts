@@ -1,14 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, EventEmitter, QueryList, ViewChild, ViewChildren, ViewRef } from '@angular/core';
-import { IDialog } from '../../interfaces';
-import { TDialog } from '../../types/common.types';
-import { from, map, Observable, of, Subject } from 'rxjs';
-import * as CSS from 'csstype';
+import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, ViewChild } from '@angular/core';
+import { from, Observable, Subject } from 'rxjs';
+import { DIALOG_CONFIG } from '../../core/injectibes';
+import { TDialog } from '../../types';
 
 /**
  * Represents a dialog component that can be used to display messages and gather user input.
  * This component implements the IDialog and AfterViewInit interfaces.
- *  @implements IDialog, AfterViewInit
+ *  @implements IDialogConfig, AfterViewInit
  *  @constructor DialogComponent
  */
 
@@ -18,177 +17,89 @@ import * as CSS from 'csstype';
   imports: [CommonModule],
   templateUrl: './dialog.component.html',
   styleUrls: ['./dialog.component.scss'],
-  host: {'class': 'app-dialog'},
+  host: { 'class': 'app-dialog' },
 })
 
-export class DialogComponent implements IDialog, AfterViewInit {
-  title: string = '';
-  message: Observable<string | null>
-  canClose: boolean = false;
-  buttonOptions: string[];
-  animationDelay = 300;
-  animationDuration: number = 300;
-  stylingOptions: CSS.Properties
-  buttonStylingOptions: CSS.Properties = {};
-
-
-  defualtStylingOptions = {
-    color: 'black',
-    backgroundColor: 'white',
-    border: '1px solid black',
+export class DialogComponent implements AfterViewInit {
+  public dialogId: number;
+  protected config: TDialog = {} as TDialog;
+  private defualtConfig: Partial<TDialog> = {
+    stylingOptions: {
+      color: 'black',
+      backgroundColor: 'white',
+      border: '1px solid black',
+    },
+    buttonStylingOptions: {
+      color: 'black',
+      backgroundColor: 'white',
+    },
+    animationDelay: 300,
+    animationDuration: 300,
+    buttonOptions: ['Ok'],
+    canClose: false,
+    closeAfter: undefined,
+    showTimer: false,
   }
-  hostView: ViewRef;
+  protected timer: Observable<number>;
 
-  private result = new EventEmitter<string>();
+  private result = new EventEmitter<string | null>();
   private opened = new EventEmitter<void>();
   private cancelled = new EventEmitter<void>();
 
-  protected timer: Observable<number>;
-  
-  @ViewChildren('dialogButton') dialogButtons: QueryList<ElementRef>;
-  @ViewChild('dialogCt') dialogCt: ElementRef<HTMLDivElement>;
+
+  @ViewChild('dialogCt') private dialogCt: ElementRef<HTMLDivElement>;
 
   constructor(
-  ) {}
+    @Inject(DIALOG_CONFIG) config: TDialog,
+    private _cdr: ChangeDetectorRef,
+  ) {
+    this.setProperties(config);
 
+  }
   ngAfterViewInit(): void {
-    this.animateDialog('in');
-  }
-
-  /**
-   * Initializes the dialog component with the specified configuration.
-   * @param {TDialog} config - The configuration for the dialog component.
-   * @returns {void}
-   * @memberof DialogComponent
-   **/
-  private init(config: TDialog): void {
-    try{
-      this.title = config.title ?? '';
-      this.message = config.message instanceof Observable ? config.message : of(config.message ?? '');
-      this.canClose = config.canClose ?? false;
-      this.buttonOptions = config.buttonOptions ?? [];
-      this.stylingOptions =  config.stylingOptions ?? this.defualtStylingOptions;
-      this.buttonStylingOptions = config.buttonStylingOptions!
-    }
-    catch(err){
-      console.log(err);
-    }
-  }
-
-  /**
-   * Emits a result when a button is clicked and closes dialog.
-   * @param {Event | string} event - The event or string to emit.
-   * @returns {void}
-   * @memberof DialogComponent
-   **/
-  protected emitResult(event: Event | string): void {
-    let result: string = '';
-
-    if (event instanceof Event) {
-      const target = event.target as HTMLButtonElement;
-      if (target.classList.contains('dialog-close')) {
-        this.cancelDialog();
-        return;
-      }
-      result = target.innerText;
-    } else {
-      result = event;
-    }
-
-    if (['cancel', 'close'].includes(result.toLowerCase())) {
-      this.cancelDialog();
-      return;
-    }
-    this.closeDialog().then(() => this.result.emit(result))
-    
-  }
-
-  /**
-   * Closes the dialog component and emits a cancelled event.
-   * @memberof DialogComponent
-   * */
-  protected cancelDialog(): void {
-    from(this.closeDialog().then(() => this.cancelled.emit()))
-  }
-
-  private closeDialog() {    
-    return this.animateDialog('out').finished.then(() => {
-      this.hostView.destroy();
-    });
-  }
-
-  /**
-   * Opens a dialog component with the specified configuration.
-   * @param {TDialog} config - The configuration for the dialog component.
-   * @param {ViewRef} hostView - The view reference for the dialog component.
-   * @param {number} closeAfter - The time in milliseconds to close the dialog after.
-   * @param {boolean} showTimer - Whether to show a timer message.
-   * @memberof DialogComponent
-   **/
-  openDialog(config: TDialog, hostView: ViewRef, closeAfter?: number, showTimer?: boolean) {
-    try{
-      this.init(config);
-      this.hostView = hostView;
+    this._cdr.detectChanges();    
+    this.animateDialog('in').finished.then(() => {
       this.opened.emit();
+      this.dialogCt.nativeElement.focus();
+    })
+  }
 
-      if (closeAfter) {
-        if (showTimer) {
-          this.timer = this.countdown(closeAfter)
+  /**
+   * Sets the properties of the dialog component from the configuration object. If a property is not provided, the default value is used.
+   * @param {IDialogConfig} config - The configuration object for the dialog component.
+   * @memberof DialogComponent
+   **/
+  private setProperties(config: TDialog) {
+    const isObject = (val: any): boolean => {
+      return val && typeof val === 'object' && !Array.isArray(val);
+    };
+    const mergeDefaults = (obj1: Record<string, any>, obj2: Record<string, any>): Record<string, any> => {
+      return Object.keys({ ...obj1, ...obj2 }).reduce((acc, key) => {
+        const val1 = obj1[key];
+        const val2 = obj2[key];
+
+        if (isObject(val1) && isObject(val2)) {
+          (acc as any)[key] = mergeDefaults(val1, val2);
+        } else {
+          (acc as any)[key] = val1 !== undefined ? val1 : val2;
         }
-        setTimeout(() => {
-          this.closeDialog().then(() => this.cancelled.emit())
-        }, closeAfter);
-      }
-
-      return this;
-    }
-    catch(err){
-      console.log(err);
-      return {
-        onOpen: () => this.onOpen(),
-        onClose: () => this.onClose(),
-        onCancel: () => this.onCancel()
-      }
-    }
-  }
-
-  /**
-    * Returns an observable that emits when the dialog is opened.
-    * @returns {Observable<void>} - An observable that emits when the dialog is opened.
-    * @memberof DialogComponent
-    **/
-  onOpen(): Observable<void> {
-    return this.opened.asObservable();
-  }
-
-    /**
-    * Returns an observable that emits when the dialog is opened.
-    * @returns {Observable<string>} - An observable that emits when the dialog is closed.
-    * @memberof DialogComponent
-    **/
-  onClose(): Observable<string> {
-    return this.result.asObservable();
-  }
-
-  /**
-    * Returns an observable that emits when the dialog is cancelled.
-    * @returns {Observable<void>} - An observable that emits when the dialog is cancelled.
-    * @memberof DialogComponent
-    **/
-  onCancel(): Observable<void> {
-    return this.cancelled.asObservable();
+        return acc;
+      }, {} as TDialog);
+    };
+    this.config = mergeDefaults(config, this.defualtConfig,) as TDialog;
+    if (this.config.closeAfter) { this.timer = this.countdown(this.config.closeAfter) };
   }
 
   /**
    * Animates the dialog component.
-   * @param {string} direction - The direction to animate the dialog component.
+   * @param {'in' | 'out'} direction - The direction to animate the dialog component.
    * @returns {Animation} - The animation object.
    * @memberof DialogComponent
   **/
   private animateDialog(direction: 'in' | 'out'): Animation {
     const animationOptions: KeyframeAnimationOptions = {
-      duration: this.animationDuration,
-      delay: this.animationDelay,
+      duration: this.config.animationDuration,
+      delay: this.config.animationDelay,
       fill: 'forwards',
       easing: 'ease-in-out',
     };
@@ -199,13 +110,14 @@ export class DialogComponent implements IDialog, AfterViewInit {
 
     return this.dialogCt.nativeElement.animate(animationKeyframes, animationOptions);
   }
-  
+
   /**
    * Returns an observable that emits a countdown.
    * @param {number} count - The time in milliseconds to countdown from.
    * @returns {Observable<number>} - An observable that emits a countdown.
    * @memberof DialogComponent
    **/
+
   private countdown(count: number): Observable<number> {
     const countdownSubject = new Subject<number>();
     let countdownValue = count / 1000;
@@ -216,9 +128,72 @@ export class DialogComponent implements IDialog, AfterViewInit {
 
       if (countdownValue < 0) {
         clearInterval(interval);
+        countdownSubject.complete();
+        this.closeDialog().then(() => this.result.emit());
       }
     }, 1000);
 
     return countdownSubject.asObservable();
   }
+
+  /**
+   * Emits a result when a button is clicked and closes dialog.
+   * @param {Event | string} event - The event or string to emit.
+   * @returns {void}
+   * @memberof DialogComponent
+   **/
+  protected emitResult(event?: Event | string): void {
+    let result: string | null = '';
+    if (this.config.dialogType === 'alert') {
+      this.closeDialog().then(() => this.result.emit())
+      return;
+    }
+
+    if (event instanceof Event) {
+      const target = event.target as HTMLButtonElement;
+      if (target.classList.contains('dialog-close')) {
+        this.cancelDialog();
+        return;
+      }
+      result = target.innerText;
+    } else {
+      result = event!;
+    }
+    if (['cancel', 'close'].includes(result!.toLowerCase())) {
+      this.cancelDialog();
+      return;
+    }
+    this.closeDialog().then(() => this.result.emit(result))
+  }
+
+  /**
+   * Closes the dialog component and emits a cancelled event.
+   * @memberof DialogComponent
+   * */
+  protected cancelDialog(): void {
+    from(this.closeDialog().then(() => this.cancelled.emit()))
+  }
+
+  /**
+  * Animates the dialog component out and returns a promise when the animation is finished.
+  * @memberof DialogComponent
+  * */
+  private closeDialog() {
+    return this.animateDialog('out').finished
+  }
+
+  /**
+   * Returns an object with observables for dialog events.
+   * @returns {Object} - An object with observables for dialog events.
+   * @memberof DialogComponent
+   **/
+  get $() {
+    return {
+      onOpen: () => this.opened.asObservable(),
+      onClose: () => this.result.asObservable(),
+      onCancel: () => this.cancelled.asObservable(),
+    }
+  }
+
 }
+

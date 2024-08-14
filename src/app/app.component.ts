@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { DialogComponent } from './components/dialog/dialog.component';
 import { DialogService } from './services/dialog/dialog.service';
-import { catchError, map, Observable, of, startWith, Subject, switchMap, take } from 'rxjs';
+import { catchError, combineLatest, map, of, take } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -16,7 +16,7 @@ export class AppComponent {
   title = 'Dialog';
 
   constructor(
-    private dialogService: DialogService 
+    private dialogService: DialogService
   ) {}
 
   openAcknowledgeDialog() {
@@ -42,55 +42,78 @@ export class AppComponent {
   }
 
   openConfirmDialog() {
-    this.dialogService.openConfirmDialog({
+    const dialog= this.dialogService.openConfirmDialog({
       title: 'Confirm Dialog',
       message: 'This is a Confirmation Dialog.',
-      canClose: true,
       buttonOptions: ['Yes', 'No'],
       buttonStylingOptions: {
         color: 'black',
         backgroundColor: 'white',
       },
-    }).onConfirm().pipe(
-      take(1),
-      map((res) => {
-        this.openAlertDialog(`You chose: ${res}`);
-      }),
-      catchError((err) => {
-        console.log(err);
-        return of(err);
-      })
-    ).subscribe();
+    })
+    combineLatest([
+      dialog.onConfirm().pipe(
+        take(1), 
+        map(() => {
+          this.openAlertDialog('You confirmed the dialog prompt');
+        }),
+        catchError((err) => {
+          this.openAlertDialog(`Error: ${err}`);
+          return of(err);
+        })
+      ),
+      dialog.onReject().pipe(
+        take(1), 
+        map(() => {
+          this.openAlertDialog('You rejected the dialog prompt');
+        }),
+        catchError((err) => {
+          this.openAlertDialog(`Error: ${err}`);
+          return of(err);
+        })
+      ),
+    ]).pipe(take(1)).subscribe();
 
   }
 
   openChoiceDialog() {
-    this.dialogService.openChoiceDialog({
+    const dialog = this.dialogService.openChoiceDialog({
       title: 'Choice Dialog',
       message: 'This is a Choice Dialog.',
       canClose: true,
       buttonOptions: ['OK', 'Skip', 'Cancel'],
-    }).onChoice().pipe(
-      take(1),
-      map((res) => {
-        console.log();
-        
-        this.openAlertDialog(`You chose: ${res}`);
-      }),
-      catchError((err) => {
-        console.log(err);
-        return of(err);
-      })
-    ).subscribe();
+    })
+    combineLatest([
+      dialog.onChoice().pipe(
+        take(1), 
+        map((res) => {
+          this.openAlertDialog(`You chose: ${res}`);
+        }),
+        catchError((err) => {
+          this.openAlertDialog(`Error: ${err}`);
+          return of(err);
+        })
+      ),
+      dialog.onCancel().pipe(
+        take(1), 
+        map(() => {
+          this.openAlertDialog('You cancelled the dialog prompt');
+        }),
+        catchError((err) => {
+          this.openAlertDialog(`Error: ${err}`);
+          return of(err);
+        })
+      ),
 
+    ]).pipe(take(1)).subscribe();
   }
 
   openAlertDialog(message: string, closeAfter: number = 5000) {
     this.dialogService.openAlertDialog({
-      message: of(message),
+      message: message,
       closeAfter: closeAfter,
       showTimer: true,
-      title: 'Alert Dialog',
+      title: 'Alert',
     })
   }
   

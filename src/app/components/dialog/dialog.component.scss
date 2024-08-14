@@ -71,7 +71,7 @@ button{
     }
 }
 
-.dialog-message{
+.dialog-message-ct{
     min-width: 500px;
     min-height: 200px;
     max-width: 100%;
@@ -84,7 +84,9 @@ button{
     flex: 1;
 
     span{
-
+        display: flex;
+        justify-content: center;
+        align-items: center;
         text-align: center;
     }
 }

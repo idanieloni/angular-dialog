@@ -1,20 +1,39 @@
-<div  #dialogCt class="dialog-ct" [style]="stylingOptions" >
+<div  #dialogCt class="dialog-ct" [style]="config.stylingOptions" >
     <div class="dialog-header">
-        <span class="dialog-title" *ngIf="title">{{title}}</span>
-        <span class="dialog-close" *ngIf="canClose" (click)="cancelDialog()">
+        <span class="dialog-title" *ngIf="config.title">{{config.title}}</span>
+        <span class="dialog-close" *ngIf="(config.dialogType==='alert') || ( config.dialogType === 'choice') && config.canClose" (click)="config.dialogType === 'choice' && cancelDialog() || config.dialogType === 'alert' && emitResult()">
             <svg class="svg-icon" viewBox="0 0 24 24">
                 <path d="M6.34314575 6.34314575L17.6568542 17.6568542M6.34314575 17.6568542L17.6568542 6.34314575"></path>
             </svg>
         </span>
     </div>
     <div class="dialog-message-ct">
-        <span class="dialog-message">{{message | async}}</span>
-        <span class="dialog-timer-message" *ngIf="timer">This alert will close in {{timer | async}}s</span>
+        <span class="dialog-message">{{config.message}}</span>
+        <span class="dialog-timer-message" *ngIf="config.dialogType === 'alert' && timer">This alert will close in {{timer | async}}s</span>
     </div>
-    <div  class="dialog-buttons-ct" *ngIf="buttonOptions">
-        @for (bttn of buttonOptions; track bttn) {
-        <button #dialogButton class="dialog-button" [style]="buttonStylingOptions" (click)="emitResult($event)">{{bttn | titlecase}} </button>
-        }
+
+    <div  class="dialog-buttons-ct">
+        <ng-container *ngTemplateOutlet="config.dialogType === 'choice' ? choiceDialogBttns : config.dialogType === 'confirm' ? confirmDialogBttns : config.dialogType === 'acknowledge' ? acknowledgeDialogBttns : empty">
+        </ng-container>
     </div>
 
 </div>
+
+<ng-template #choiceDialogBttns>
+    @for (bttn of config.buttonOptions; track bttn) {
+        <button #dialogButton class="dialog-button" [style]="config.buttonStylingOptions" (click)="emitResult($event)">{{bttn | titlecase}} </button>
+        }
+</ng-template>
+
+<ng-template #confirmDialogBttns>
+    <button #dialogButton class="dialog-button" [style]="config.buttonStylingOptions" (click)="emitResult($event)">{{config.buttonOptions![0] | titlecase}} </button>
+    <button #dialogButton class="dialog-button" [style]="config.buttonStylingOptions" (click)="cancelDialog()">{{config.buttonOptions![1] | titlecase}} </button>
+</ng-template>
+
+
+<ng-template #acknowledgeDialogBttns>
+    <button #dialogButton class="dialog-button" [style]="config.buttonStylingOptions" (click)="emitResult($event)">{{config.buttonOptions![0] | titlecase}} </button>
+</ng-template>
+
+<ng-template #empty>
+</ng-template>

@@ -1,7 +1,9 @@
 import { Mock } from "ts-mocks";
 import { DialogService } from "../../services/dialog/dialog.service";
 import { of } from "rxjs";
-import { TAcknowledgeDialog, TChoiceDialog, TConfirmDialog } from "../../types/common.types";
+import { TAcknowledgeDialog, TChoiceDialog, TConfirmDialog } from "../../types";
+import { ViewRef } from "@angular/core";
+import { MockTokens } from "./injectibles.providers";
 
 export class MockServices<T> extends Mock<T> {
     provider: { provide: {}, useValue: T };
@@ -34,3 +36,4 @@ export class MockServices<T> extends Mock<T> {
         return mock;
       }
 }   
+

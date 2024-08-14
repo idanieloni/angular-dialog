@@ -1,25 +1,26 @@
+import { TAcknowledgeDialog, TAlertDialog, TChoiceDialog, TConfirmDialog } from "../types";
 
-const mockAlertDialogConfig = {
+const mockAlertDialogConfig: TAlertDialog = {
     title: 'Alert Dialog',
     message: 'This is an Alert Dialog.',
-    buttonOptions: ['OK'],
+    closeAfter: 1000,
+    showTimer: true,
 };
 
-const mockAknowledgementDialogConfig = {
+const mockAknowledgementDialogConfig: TAcknowledgeDialog = {
     title: 'Aknowledgement Dialog',
     message: 'This is an Aknowledgement Dialog.',
     buttonOptions: ['OK'] as [string],
 
 };
-const mockConfirmDialogConfig = {
+const mockConfirmDialogConfig: TConfirmDialog = {
     title: 'Confirm Dialog',
     message: 'This is a Confirmation Dialog.',
-    canClose: true,
     buttonOptions: ['Yes', 'No'] as [string, string],
 
 };
 
-const mockChoiceDialogConfig = {
+const mockChoiceDialogConfig: TChoiceDialog = {
     title: 'Choice Dialog',
     message: 'This is a Choice Dialog.',
     canClose: true,
@@ -31,6 +32,6 @@ export const mockDialogData ={
     mockAlertDialogConfig,
     mockConfirmDialogConfig,
     mockChoiceDialogConfig,
-    mockAknowledgementDialogConfig
+    mockAknowledgementDialogConfig,
 }
 
