@@ -2,7 +2,7 @@ import { createComponent, createEnvironmentInjector, EnvironmentInjector, Inject
 import { TAcknowledgeDialog, TAlertDialog, TChoiceDialog, TConfirmDialog, TDialog, TDialogConfig, TDialogType } from '../../types';
 import { DialogComponent } from '../../components/dialog/dialog.component';
 import { combineLatest, merge, pipe, take, throwError } from 'rxjs';
-import { DIALOG_CONFIG } from '../../core/injectibes';
+import { DIALOG_CONFIG } from '../../core/injection-tokens';
 
 
 @Injectable({

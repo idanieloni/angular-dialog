@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { AfterViewInit, ChangeDetectorRef, Component, ElementRef, EventEmitter, Inject, ViewChild } from '@angular/core';
 import { from, Observable, Subject } from 'rxjs';
-import { DIALOG_CONFIG } from '../../core/injectibes';
+import { DIALOG_CONFIG } from '../../core/injection-tokens';
 import { TDialog } from '../../types';
 
 /**

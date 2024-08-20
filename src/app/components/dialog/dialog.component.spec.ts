@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { DialogComponent } from './dialog.component';
 import { mockDialogData } from '../../testing/mock-data';
 import { take } from 'rxjs';
-import { DIALOG_CONFIG } from '../../core/injectibes';
+import { DIALOG_CONFIG } from '../../core/injection-tokens';
 
 describe('DialogComponent', () => {
   let component: DialogComponent;

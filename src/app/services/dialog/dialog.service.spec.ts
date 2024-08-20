@@ -3,7 +3,7 @@ import { DialogService } from './dialog.service';
 import { mockDialogData } from '../../testing/mock-data';
 import { EnvironmentInjector, ViewContainerRef } from '@angular/core';
 import { MockTokens } from '../../testing/providers/injectibles.providers';
-import { DIALOG_CONFIG } from '../../core/injectibes';
+import { DIALOG_CONFIG } from '../../core/injection-tokens';
 import { catchError, combineLatest, map, Observable, of, Subject, take } from 'rxjs';
 
 describe('DialogService', () => {
